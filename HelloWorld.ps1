@@ -1,4 +1,5 @@
-﻿Add-Type -AssemblyName PresentationFramework
+﻿# -*- encoding: utf-8 -*-
+Add-Type -AssemblyName PresentationFramework
 
 $inputXAML = @"
 <Window x:Class="WpfApp1.MainWindow"
