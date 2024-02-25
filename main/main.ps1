@@ -55,6 +55,71 @@ function ButtonPressed {
 }
 
 
+#Create restore point
+function CreateRestorePoint {
+    Enable-ComputerRestore -Drive "C:"
+    
+    Checkpoint-Computer -Description "PC_OPTIMIZER" -RestorePointType MODIFY_SETTINGS
+}
+
+
+#Import custom powerplan
+function SetPowerPlan {
+    $currentUser = $env:USERANME
+    $powWebLocation = "https://raw.githubusercontent.com/NorseDevInc/PC_Optimizer/main/Assets/Powerplan/Core.pow"
+    $localPath = "C:\Users\$currentUser\TMP\Core.pow"
+
+    New-Item -ItemType directory -Name TMP -Path C:\Users\$currentUser\
+
+    Invoke-WebRequest -Uri $powWebLocation -OutFile $localPath
+
+    powercfg -import $localPath
+}
+
+
+# Downloads and sets the powerplan to a custom one
+function SetPowerPlan {
+    
+    $isImported = VerifyPowerPlan
+
+    if ($isImported -eq $true) {
+        return
+    }
+
+    $currentUser = $env:USERNAME
+    $powWebLocation = "https://raw.githubusercontent.com/NorseDevInc/PC_Optimizer/main/Assets/Powerplan/Core.pow"
+    $localPath = Join-Path "C:\Users\$currentUser\TMP_OPTIMIZER" "Core.pow"
+
+    # Create the TMP directory if it doesn't exist
+    if (-not (Test-Path "C:\Users\$currentUser\TMP_OPTIMIZER" -PathType Container)) {
+        New-Item -ItemType Directory -Path "C:\Users\$currentUser\TMP_OPTIMIZER"
+    }
+
+    # Download the file
+    Invoke-WebRequest -Uri $powWebLocation -OutFile $localPath
+
+    powercfg -import $localPath
+}
+
+# used in SetPowerPlan
+function VerifyPowerPlan {
+    $powerPlanName = "(CoreVeeAir's)"
+
+    $powerPlans = powercfg /L | ForEach-Object { ($_ -split '\s+')[4] }
+
+    foreach ($plan in $powerPlans) {
+        #Write-Host "Power plan: $plan"
+        if ($plan -eq $powerPlanName) {
+            Write-Host "Power Plan Found!"
+            return $true
+        }
+    }
+
+    return $false
+}
+
+
+
 $var_HelloButton.Add_Click({ButtonPressed})
 
 $psform.ShowDialog()
